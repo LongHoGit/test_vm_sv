@@ -1,115 +1,149 @@
-module vending_1 (
-  // input
-  input logic clk_i,
-  input logic nickle_i,
-  input logic dime_i,
-  input logic quarter_i,
+module vending_1(
+clk_i,nickle_i,dime_i,quarter_i,
+soda_o,change_o);
+  ////// input//////////
+  input logic clk_i,nickle_i,dime_i,quarter_i;
 
-  // output
-  output logic soda_o,
-  output logic [2:0] change_o
-);
+  ////// output////////
+  output logic soda_o;
+  output logic [2:0] change_o;
 
-  // local declaration
-  logic [2:0] ps_tmp; // temporary for Present State result
-  logic [2:0] ns_tmp; // temporary for Next State result
-  logic c_tmp; //0 : no change ; 1: change 
-  localparam S0 = 3'b000; // 0
-  localparam S1 = 3'b001; // 5
-  localparam S2 = 3'b010; // 10
-  localparam S3 = 3'b011; // 15
+
+  logic [2:0] ps; /////present state     //      
+  logic [2:0] ns; /////next state        //        
+  logic c;        /////select ouput state//
+  localparam S0 = 3'b000;
+  localparam S1 = 3'b001; 
+  localparam S2 = 3'b010;
+  localparam S3 = 3'b011;
+  localparam S4 = 3'b100;
   
-  always_latch begin : proc_main
-  case (ps_tmp)
+ //State machine////
+  always_latch begin : proc_main 
+  case (ps)
     S0: begin
       soda_o = 1'b0;
       change_o = 3'b000;
-      if (nickle_i) begin
-      	ns_tmp = S1 ; c_tmp = 1'b0;
+      if (nickle_i) 
+      begin
+        ns = S1 ; 
+        c = 1'b0;
       end
-      else if (dime_i) begin
-	    ns_tmp = S2 ; c_tmp = 1'b0;    
+      else if (dime_i) 
+      begin
+        ns = S2 ; 
+        c = 1'b0;    
       end
-      else if (quarter_i) begin
-      	ns_tmp = S1 ; c_tmp = 1'b1;
+      else if (quarter_i) 
+      begin
+        ns = S1 ; 
+        c = 1'b1;
       end
-      else ns_tmp = ps_tmp;
-      if (c_tmp) begin 
-      	change_o = ns_tmp;
-	ns_tmp = 3'b000;
-	soda_o = 1'b1;
+      else ns = ps;
+    //Check//
+      if (c) 
+      begin 
+        change_o = ns;
+        ns = S0;
+        soda_o = 1'b1;
       end
     end
 
     S1: begin
-	  soda_o = 1'b0;
-          change_o = 3'b000;
-	  if (nickle_i) begin
-	    ns_tmp = S2 ; c_tmp = 1'b0;
-	  end
-	  else if (dime_i) begin
-	    ns_tmp = S3 ; c_tmp = 1'b0;    
-	  end
-	  else if (quarter_i) begin
-	    ns_tmp = S2 ; c_tmp = 1'b1;
-	  end
-	  else ns_tmp = ps_tmp;
-	  if (c_tmp) begin 
-	    change_o = ns_tmp; 
-	    ns_tmp = 3'b000;
-	    soda_o = 1'b1;
-	  end	
-    end
-
-    S2: begin
-      soda_o = 1'b0;
-      change_o = 3'b000;
-      if (nickle_i) begin
-        ns_tmp = S3 ; c_tmp = 1'b0;
-      end
-      else if (dime_i) begin
-	ns_tmp = S0 ; c_tmp = 1'b1;    
-      end
-      else if (quarter_i)begin
-	ns_tmp = S3 ; c_tmp = 1'b1;
-      end
-      else ns_tmp = ps_tmp;
-      if (c_tmp) begin 
-	change_o = ns_tmp ; 
-	ns_tmp = S0;
-	soda_o = 1'b1;
-      end
-    end
-
-    S3: begin
     soda_o = 1'b0;
     change_o = 3'b000;
-    if (nickle_i) begin
-      ns_tmp = S0 ; c_tmp = 1'b1;
-    end
-    else if (dime_i) begin
-      ns_tmp = S1 ; c_tmp = 1'b1;    
-    end
-    else if (quarter_i) begin
-      ns_tmp = 3'b100 ; c_tmp = 1'b1;
-    end
-    else ns_tmp = ps_tmp;
-    if (c_tmp) begin 
-      change_o = ns_tmp ;
-      ns_tmp = S0;
-      soda_o = 1'b1;
-    end	
+    if (nickle_i) 
+      begin
+        ns = S2 ; 
+        c = 1'b0;
+      end
+    else if (dime_i) 
+      begin
+        ns = S3 ; 
+        c = 1'b0;    
+      end
+    else if (quarter_i) 
+      begin
+        ns = S2 ; 
+        c = 1'b1;
+      end
+    else ns = ps; 
+    //Check//   
+    if (c) 
+      begin 
+        change_o = ns; 
+        ns = S0;
+        soda_o = 1'b1;
+      end 
+     end
+
+    S2: begin  //
+      soda_o = 1'b0;
+      change_o = 3'b000;
+      if (nickle_i) 
+      begin
+        ns = S3 ; 
+        c = 1'b0;
+      end
+      else if (dime_i) 
+      begin
+        ns = S0 ; 
+        c = 1'b1;    
+      end
+      else if (quarter_i)
+      begin
+        ns = S3 ; 
+        c = 1'b1;
+      end
+      else ns = ps;
+    //Check//   
+      if (c) 
+      begin 
+        change_o = ns ; 
+        ns = S0;
+        soda_o = 1'b1;
+      end
     end
 
-    default : begin
-      ns_tmp = S0;
+    S3: begin ///////state 3////
+    soda_o = 1'b0;
+    change_o = 3'b000;
+    if (nickle_i) 
+    begin
+      ns = S0 ; 
+      c = 1'b1;
+    end
+    else if (dime_i) 
+    begin
+      ns = S1 ; 
+      c = 1'b1;    
+    end
+    else if (quarter_i) 
+    begin
+      ns = S4 ; 
+      c = 1'b1;
+    end
+    else ns = ps;
+    //Check//
+    if (c) begin 
+      change_o = ns ;
+      ns = S0;
+      soda_o = 1'b1;
+    end 
+    end
+
+    default : //State 4///
+    begin
+      ns = S0;
       soda_o = 1'b0;
       change_o = 3'b000;
     end 
   endcase
-end
+  end
 
-always_ff @(posedge clk_i) begin : proc_state
-  ps_tmp <= ns_tmp; 
-end
+  ////Flip-Flop/////
+  always_ff @(posedge clk_i) begin : proc_FlipFlop 
+    ps <= ns; 
+  end
+  
 endmodule : vending_1
